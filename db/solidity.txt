@@ -6,11 +6,10 @@ contract Payroll {
     uint public balance;
 
     struct Employee {
-        uint salary;
-        uint lastPayday;
+        // 当前账户余额
         uint balance;
-        uint payDuration;
-        uint holiday;
+        // 付款状态
+        uint payState;
     }
 
     mapping(address => Employee) public employees;
@@ -19,8 +18,8 @@ contract Payroll {
         owner = msg.sender;
     }
 
-    function addEmployee(address employee, uint salary, uint timestamp, uint payDuration) public {
-        employees[employee] = Employee(salary, timestamp, 0, payDuration, 0);
+    function addEmployee(address employee) public {
+        employees[employee] = Employee(0, 1);
         totalEmployees++;
     }
 
@@ -29,10 +28,8 @@ contract Payroll {
         totalEmployees--;
     }
 
-    function updateEmployee(address employee, uint salary, uint payDuration, uint holiday) public {
-        employees[employee].salary = salary;
-        employees[employee].payDuration = payDuration;
-        employees[employee].holiday += holiday;
+    function updateEmployee(address employee, uint payState) public {
+        employees[employee].payState = payState;
     }
 
     function addFund(uint amount) public payable {
@@ -47,34 +44,15 @@ contract Payroll {
         return employees[address(msg.sender)].balance;
     }
 
-    function getSalary()  public view returns (uint) {
-        return employees[address(msg.sender)].salary;
-    }
-
     function getSender() public view returns (address) {
         // 返回调用者的地址
         return msg.sender;
     }
 
-    function getNextPayTime() public view returns (uint) {
-        // 检查是否存在发送者地址对应的雇员信息
+    function getPaid(uint amount) public {
         require(employees[address(msg.sender)].salary != 0, "您还不是员工！");
-        uint nextPayday = employees[address(msg.sender)].lastPayday + employees[address(msg.sender)].payDuration;
-        return nextPayday;
-    }
-
-    function getPaid(uint timestamp, uint timeUnit) public returns (uint) {
-        require(employees[address(msg.sender)].salary != 0, "您还不是员工！");
-        uint nextPayday = employees[address(msg.sender)].lastPayday + employees[address(msg.sender)].payDuration;
-        require(timestamp >= nextPayday, "还未到账户支付时间");
-        uint times = (timestamp - employees[address(msg.sender)].lastPayday) / timeUnit;
-        uint totalDay = times - employees[address(msg.sender)].holiday;
-        require(timestamp >= 0, "计薪天数必须大于0");
-        uint totalSalary = totalDay * employees[address(msg.sender)].salary;
-        employees[address(msg.sender)].lastPayday = nextPayday;
-        employees[address(msg.sender)].balance += totalSalary;
-        balance -= totalSalary;
-        employees[address(msg.sender)].holiday = 0;
-        return totalSalary;
+        require(employees[address(msg.sender)].payState == 1, "员工处于薪资关闭状态！");
+        employees[address(msg.sender)].balance += amount;
+        balance -= amount;
     }
 }

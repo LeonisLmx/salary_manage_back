@@ -13,8 +13,12 @@ server:
         http-only: true
 
 spring:
-  profiles:
-    active: dev
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    username: root
+    password: root@xchain123
+    url: jdbc:mysql://127.0.0.1:3306/salary?characterEncoding=utf8&useSSL=false&serverTimezone=GMT%2B8&allowPublicKeyRetrieval=True
+    driver-class-name: com.mysql.jdbc.Driver
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
